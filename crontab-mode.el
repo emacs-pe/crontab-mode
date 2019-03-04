@@ -32,6 +32,11 @@
 ;;; Code:
 (require 'sh-script)
 
+(defgroup crontab nil
+  "Major mode for editing crontab(5) files."
+  :prefix "crontab-"
+  :group 'languages)
+
 (defface crontab-minute
   '((t :inherit outline-1))
   "Face to use for highlighting crontab minute field."
