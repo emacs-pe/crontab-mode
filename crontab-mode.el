@@ -6,7 +6,7 @@
 ;; URL: https://github.com/emacs-pe/crontab-mode
 ;; Keywords: languages
 ;; Version: 0.1
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
 
