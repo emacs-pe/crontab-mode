@@ -30,6 +30,7 @@
 ;; Major mode for crontab(5) files
 
 ;;; Code:
+(eval-when-compile (require 'cl-lib))
 (require 'sh-script)
 
 (defgroup crontab nil
@@ -67,6 +68,9 @@
   "Face to use for crontab predefined definitions."
   :group 'crontab)
 
+(defvar crontab-fields '("minute (0-59)" "hour (0-23)" "day (1-31)" "month (1-12)" "day-of-week (0-6)" "command")
+  "Fields used by `crontab-eldoc-function' to show the crontab information.")
+
 (eval-and-compile
   (defconst crontab-rx-constituents
     ;; https://en.wikipedia.org/wiki/Cron#CRON_expression
@@ -98,7 +102,7 @@
     ;;  │ │ │ │ │
     ;;  │ │ │ │ │
     ;;  * * * * *  command to execute
-    (,(crontab-rx line-start
+    (,(crontab-rx line-start (* space)
                   (group unit (? step)) (+ space) ; minutes
                   (group unit (? step)) (+ space) ; hours
                   (group (or (seq unit (? step)) "?" "L" "W")) (+ space) ; day of month
@@ -133,24 +137,20 @@
   (indent-line-to 0))
 
 (defun crontab-eldoc-function ()
-  "Return a list of message numbers from point to the end of the line.
-Expands ranges into set of individual numbers."
-  (let ((point (point))
-        (end-of-line (point-at-eol)))
-    (cl-case (save-excursion
-               (beginning-of-line)
-               (cl-loop while (re-search-forward "[^[:space:]]" end-of-line t)
-                        with field = 0
-                        do (cl-incf field)
-                        if (or (<= point (point)) (>= field 6))
-                        return field))
-      (1 (concat (propertize "minute" 'face 'font-lock-function-name-face) ": values can be from 0 to 59"))
-      (2 (concat (propertize "hour" 'face 'font-lock-function-name-face) ": values can be from 0 to 23"))
-      (3 (concat (propertize "day of month" 'face 'font-lock-function-name-face) ": values can be from 1 to 31"))
-      (4 (concat (propertize "month" 'face 'font-lock-function-name-face) ": values can be from 1 to 12"))
-      (5 (concat (propertize "day of week" 'face 'font-lock-function-name-face) ": values can be from 0 to 6, with 0 denoting Sunday"))
-      (6 "Command to execute")
-      (t ""))))
+  "`eldoc-documentation-function' for Crontab."
+  (let* ((point (point))
+         (end-of-line (point-at-eol))
+         (fields (copy-sequence crontab-fields))
+         (n (save-excursion
+              (beginning-of-line)
+              (cl-loop while (re-search-forward "[^[:space:]]+" end-of-line t)
+                       with field = -1
+                       do (cl-incf field)
+                       if (or (>= (point) point) (>= field 5))
+                       return field))))
+    (when n
+      (setcar (nthcdr n fields) (propertize (elt fields n) 'face 'font-lock-constant-face)))
+    (mapconcat 'identity fields "  ")))
 
 ;;;###autoload
 (define-derived-mode crontab-mode text-mode "Crontab"
