@@ -174,7 +174,7 @@
        'crontab-indent-line))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/crontab\\.X*[[:alnum:]]+\\'" . crontab-mode))
+(add-to-list 'auto-mode-alist '("/crontab\\(\\.X*[[:alnum:]]+\\)?\\'" . crontab-mode))
 
 (provide 'crontab-mode)
 ;;; crontab-mode.el ends here
