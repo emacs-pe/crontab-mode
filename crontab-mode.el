@@ -165,7 +165,7 @@ The `crontab(1)' executable is used to load the crontab."
     (erase-buffer)
     (when (> (call-process "crontab" nil t nil "-l") 0)
       (goto-char (point-min))
-      (unless (looking-at (concat "^crontab: no crontab for " user-login-name))
+      (unless (looking-at "^crontab: no crontab")
         (error "Loading crontab failed"))
       (erase-buffer)
       (insert "# crontab\n"))
