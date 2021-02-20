@@ -190,9 +190,9 @@ The `crontab(1)' executable is used to save the crontab."
   (if crontab-user-crontab-file
       (save-restriction
         (widen)
-        (goto-char (point-max))
         ;; Insert newline if missing on last line
-        (unless (and (> (point) 1) (looking-back "\n" (1- (point))))
+        (unless (eq (char-before (point-max)) ?\n)
+          (goto-char (point-max))
           (insert "\n"))
         (if (> (call-process-region nil nil "crontab") 0)
             (error "Installing crontab failed")
