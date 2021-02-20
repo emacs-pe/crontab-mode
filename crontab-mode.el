@@ -158,8 +158,7 @@ The crontab can be edited and then installed again by calling
 `crontab-install-user-crontab'.  The buffer does not need to be
 saved since no file is associated with it.
 
-The operating system must provide the `crontab(1)' command to read
-the crontab."
+The `crontab(1)' executable is used to load the crontab."
   (interactive)
   (let ((buffer (get-buffer-create "*crontab*")))
     (switch-to-buffer buffer)
