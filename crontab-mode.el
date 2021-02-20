@@ -169,7 +169,8 @@ The `crontab(1)' executable is used to load the crontab."
         (error "Loading crontab failed"))
       (erase-buffer)
       (insert "# crontab\n"))
-    (goto-char (point-max))
+    (set-buffer-modified-p nil)
+    (goto-char (point-min))
     (crontab-mode)
     (setq-local crontab-user-crontab-file t)))
 
