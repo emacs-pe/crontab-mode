@@ -152,6 +152,55 @@
       (setcar (nthcdr n fields) (propertize (elt fields n) 'face 'font-lock-constant-face)))
     (mapconcat 'identity fields "  ")))
 
+(defun crontab-edit-user-crontab ()
+  "Create a buffer to edit the user crontab.
+The crontab can be edited and then installed again by calling
+`crontab-install-user-crontab'.  The buffer does not need to be
+saved since no file is associated with it.
+
+The `crontab(1)' executable is used to load the crontab."
+  (interactive)
+  (let ((buffer (get-buffer-create "*crontab*")))
+    (switch-to-buffer buffer)
+    (erase-buffer)
+    (when (> (call-process "crontab" nil t nil "-l") 0)
+      (goto-char (point-min))
+      (unless (looking-at "^crontab: no crontab")
+        (error "Loading crontab failed"))
+      (erase-buffer)
+      (insert "# crontab\n"))
+    (set-buffer-modified-p nil)
+    (goto-char (point-min))
+    (crontab-mode)
+    (setq-local crontab-user-crontab-file t)))
+
+(defun crontab-install-user-crontab ()
+  "Install the contents of the current buffer as user crontab.
+An error will be signaled if the buffer hasn't been created by
+`crontab-edit-user-crontab'.  If the user crontab already exists,
+it will be replaced without any further confirmation.
+
+If the last line does not end with a newline character, then it
+will be added before the crontab is installed.
+
+The buffer can be saved to a file for your own reference but that
+is not required for installing the crontab.
+
+The `crontab(1)' executable is used to save the crontab."
+  (interactive)
+  (if crontab-user-crontab-file
+      (save-restriction
+        (widen)
+        ;; Insert newline if missing on last line
+        (unless (eq (char-before (point-max)) ?\n)
+          (goto-char (point-max))
+          (insert "\n"))
+        (if (> (call-process-region nil nil "crontab") 0)
+            (error "Installing crontab failed")
+          (kill-buffer)
+          (message "Installed crontab")))
+    (error "Only a user crontab can be installed")))
+
 ;;;###autoload
 (define-derived-mode crontab-mode text-mode "Crontab"
   "Major mode for editing crontab file.
@@ -171,7 +220,13 @@
        '(crontab-font-lock-keywords nil t))
 
   (set (make-local-variable 'indent-line-function)
-       'crontab-indent-line))
+       'crontab-indent-line)
+
+  ;; Set to t by `crontab-edit-user-crontab' when editing a user crontab
+  (set (make-local-variable 'crontab-user-crontab-file)
+       nil)
+
+  (define-key crontab-mode-map (kbd "C-c C-c") #'crontab-install-user-crontab))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("/crontab\\(\\.X*[[:alnum:]]+\\)?\\'" . crontab-mode))
