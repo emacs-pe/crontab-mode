@@ -77,8 +77,7 @@
     `((unit    . ,(rx (+ (in "-,*" num))))
       (step    . ,(rx (? "/" (+ num))))
       (month   . ,(rx (or "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec")))
-      (weekday . ,(rx (or "sun" "mon" "tue" "wed" "thu" "fri" "sat")))
-      )
+      (weekday . ,(rx (or "sun" "mon" "tue" "wed" "thu" "fri" "sat"))))
     "Additional specific sexps for `crontab-rx'")
 
   (defmacro crontab-rx (&rest regexps)
@@ -136,7 +135,7 @@
   (interactive)
   (indent-line-to 0))
 
-(defun crontab-eldoc-function ()
+(defun crontab-eldoc-function (&rest _ignored)
   "`eldoc-documentation-function' for Crontab."
   (let* ((point (point))
          (end-of-line (point-at-eol))
@@ -149,7 +148,7 @@
                        if (or (>= (point) point) (>= field 5))
                        return field))))
     (when n
-      (setcar (nthcdr n fields) (propertize (elt fields n) 'face 'font-lock-constant-face)))
+      (setcar (nthcdr n fields) (propertize (elt fields n) 'face 'eldoc-highlight-function-argument)))
     (mapconcat 'identity fields "  ")))
 
 ;;;###autoload
@@ -163,8 +162,10 @@
 
   (if (null eldoc-documentation-function) ; Emacs<25
       (setq-local eldoc-documentation-function #'crontab-eldoc-function)
-    (add-function :before-until (local 'eldoc-documentation-function)
-                  #'crontab-eldoc-function))
+    (if (boundp 'eldoc-documentation-functions)
+        (add-hook 'eldoc-documentation-functions #'crontab-eldoc-function nil t)
+      (add-function :before-until (local 'eldoc-documentation-function)
+                    #'crontab-eldoc-function)))
 
   (setq-local font-lock-defaults '(crontab-font-lock-keywords nil t))
   (setq-local indent-line-function #'crontab-indent-line))
