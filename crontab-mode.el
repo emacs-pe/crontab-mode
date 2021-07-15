@@ -6,7 +6,7 @@
 ;; URL: https://github.com/emacs-pe/crontab-mode
 ;; Keywords: languages
 ;; Version: 0.1
-;; Package-Requires: ((emacs "24"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -158,20 +158,16 @@
 
 \\{crontab-mode-map}"
   :syntax-table sh-mode-syntax-table
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-start-skip) "#+\\s-*")
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip "#+\\s-*")
 
   (if (null eldoc-documentation-function) ; Emacs<25
-      (set (make-local-variable 'eldoc-documentation-function)
-           #'crontab-eldoc-function)
+      (setq-local eldoc-documentation-function #'crontab-eldoc-function)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'crontab-eldoc-function))
 
-  (set (make-local-variable 'font-lock-defaults)
-       '(crontab-font-lock-keywords nil t))
-
-  (set (make-local-variable 'indent-line-function)
-       'crontab-indent-line))
+  (setq-local font-lock-defaults '(crontab-font-lock-keywords nil t))
+  (setq-local indent-line-function #'crontab-indent-line))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("/crontab\\(\\.X*[[:alnum:]]+\\)?\\'" . crontab-mode))
